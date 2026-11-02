@@ -119,6 +119,12 @@ body[data-screen="denied"] #denied{display:grid}
 .intro{margin:-6px 0 18px;color:var(--muted);font-size:14.5px;max-width:75ch}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-sm);display:flex;gap:12px;align-items:center}
+button.kpi{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer;transition:transform .15s,border-color .2s}
+button.kpi:hover{transform:translateY(-2px);border-color:var(--gold)}
+.kpi .kar{margin-left:auto;color:var(--muted);font-size:18px;display:flex}
+.qa{position:relative;cursor:pointer;transition:transform .15s,border-color .2s}
+.qa:hover{transform:translateY(-2px)}
+.qa::after{content:"→";position:absolute;right:16px;top:14px;font-size:20px;color:var(--gold)}
 .kpi .b{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:20px;flex:none;background:var(--acc-soft);color:var(--acc)}
 .kpi strong{display:block;font-family:var(--serif);font-weight:700;font-size:clamp(22px,2.2vw,30px);line-height:1.05}
 .kpi span{color:var(--muted);font-size:13.5px}
@@ -320,7 +326,7 @@ body[data-screen="denied"] #denied{display:grid}
   <div class="card pad" style="max-width:460px">
     <div class="hi" style="margin:0 auto 10px"><i data-icon="lock"></i></div>
     <h2 class="serif" style="margin:0 0 6px;font-size:30px">Acceso solo para administradores</h2>
-    <p class="muted">Tu perfil es de hostess. Para la recepción de invitados usa la página de Recepción.</p>
+    <p class="muted">Tu perfil es del equipo de recepción. Para recibir a los invitados usa la página de Recepción.</p>
     <div class="actions"><a class="btn dark" href="/recepcion/"><i data-icon="userCheck"></i>Ir a Recepción</a><button class="btn" id="deniedOut">Cambiar de usuario</button></div>
   </div>
 </section>
@@ -353,7 +359,7 @@ body[data-screen="denied"] #denied{display:grid}
           <button class="qa" data-go="quote-new"><span class="hi"><i data-icon="receipt"></i></span><b>Nueva cotización</b><small>Arma y comparte en PDF</small></button>
           <button class="qa" data-go="contract-new"><span class="hi"><i data-icon="contract"></i></span><b>Nuevo contrato</b><small>Elige el tipo de evento</small></button>
           <button class="qa" data-go="booking-new"><span class="hi"><i data-icon="calendarPlus"></i></span><b>Agendar evento</b><small>Con anticipo y saldo</small></button>
-          <a class="qa rec" href="/recepcion/"><span class="hi"><i data-icon="userCheck"></i></span><b>Recepción de invitados</b><small>Página de las hostess</small></a>
+          <a class="qa rec" href="/recepcion/"><span class="hi"><i data-icon="userCheck"></i></span><b>Recepción de invitados</b><small>Página del equipo de recepción</small></a>
         </div>
         <div class="grid2">
           <div><h3 class="serif" style="font-size:22px;margin:0 0 10px">Próximos eventos</h3><div class="list" id="homeNext"></div></div>
@@ -368,7 +374,9 @@ body[data-screen="denied"] #denied{display:grid}
         <div class="kpis" id="agKpis"></div>
         <div class="tools">
           <button class="chip" data-agf="up" aria-pressed="true">Próximos</button>
+          <button class="chip" data-agf="month" aria-pressed="false">Este mes</button>
           <button class="chip" data-agf="debt" aria-pressed="false">Con saldo pendiente</button>
+          <button class="chip" data-agf="paid" aria-pressed="false">Con pagos este mes</button>
           <button class="chip" data-agf="past" aria-pressed="false">Pasados</button>
           <button class="chip" data-agf="all" aria-pressed="false">Todos</button>
         </div>
@@ -379,6 +387,7 @@ body[data-screen="denied"] #denied{display:grid}
       <section class="view" id="v-quotes">
         <div class="vh"><h2><span class="hi"><i data-icon="receipt"></i></span>Cotizaciones</h2><button class="btn dark" data-go="quote-new"><i data-icon="plus"></i>Nueva cotización</button></div>
         <p class="intro">Arma cotizaciones con los servicios del catálogo, genera un PDF elegante para compartir y, cuando el cliente acepte, conviértela en evento agendado.</p>
+        <div class="tools" id="qTools"></div>
         <div class="list" id="qList"></div>
       </section>
 
@@ -510,11 +519,11 @@ function loginErr(m){ $("lErr").innerHTML = m ? ic("lock")+`<span>${esc(m)}</spa
 let selUser = null, logging = false;
 function renderWho(){
   const list = LOGIN_USERS.filter(u=>u.role==="admin");
-  $("whoGrid").innerHTML = list.length ? list.map(u=>`<button type="button" class="who-tile" data-u="${esc(u.username)}"><span class="who-av">${esc(initials(u.name))}</span><b>${esc(u.name)}</b><small>Administrador</small></button>`).join("") : `<p class="muted">No se pudo cargar la lista de usuarios. Revisa tu conexión y recarga.</p>`;
+  $("whoGrid").innerHTML = list.length ? list.map(u=>`<button type="button" class="who-tile" data-u="${esc(u.username)}"><span class="who-av">${esc(initials(u.name))}</span><b>${esc(u.name)}</b></button>`).join("") : `<p class="muted">No se pudo cargar la lista de usuarios. Revisa tu conexión y recarga.</p>`;
 }
 function selectUser(u){
   selUser = u; $("lPin").value = ""; paintPin(); loginErr("");
-  $("whoSel").innerHTML = `<span class="who-av" style="width:56px;height:56px;font-size:21px">${esc(initials(u.name))}</span><div><b>${esc(u.name)}</b><small>Administrador</small></div>`;
+  $("whoSel").innerHTML = `<span class="who-av" style="width:56px;height:56px;font-size:21px">${esc(initials(u.name))}</span><div><b>${esc(u.name)}</b></div>`;
   $("pinTitle").textContent = "Hola, " + String(u.name).split(" ")[0];
   $("whoStep").hidden = true; $("loginForm").hidden = false; setTimeout(()=>$("lPin").focus({preventScroll:true}), 30);
 }
@@ -616,7 +625,7 @@ function bookingItem(b, compact){
     <div class="money"><b>${money(b.total)}</b><small>Pagado ${money(pd)}</small><br><small style="color:${bal>0?"var(--bad-ink)":"var(--ok-ink)"}">${bal>0?"Falta "+money(bal):"Sin saldo"}</small></div>
   </div>`;
 }
-function kpiHtml(list){ return list.map(([cls,icon,val,lab])=>`<div class="kpi ${cls}"><span class="b">${ic(icon)}</span><div><strong>${val}</strong><span>${lab}</span></div></div>`).join(""); }
+function kpiHtml(list){ return list.map(([cls,icon,val,lab,go])=>`<button type="button" class="kpi ${cls}" ${go?`data-kgo="${go}"`:""}><span class="b">${ic(icon)}</span><div><strong>${val}</strong><span>${lab}</span></div>${go?`<span class="kar">${ic("arrowRight")}</span>`:""}</button>`).join(""); }
 function renderHome(){
   const h = new Date().getHours(); $("hello").textContent = `${h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches"}, ${String(SESSION.name).split(" ")[0]}`;
   $("today").textContent = fDateLong(todayISO());
@@ -624,11 +633,17 @@ function renderHome(){
   const month = act.filter(b=>(b.event_date||"").startsWith(ym));
   const owed = act.reduce((a,b)=>a+balance(b),0), paidMonth = PAY.filter(p=>(p.paid_at||"").startsWith(ym)).reduce((a,p)=>a+(+p.amount||0),0);
   const openQ = QT.filter(q=>q.status==="borrador"||q.status==="enviada");
-  $("homeKpis").innerHTML = kpiHtml([["k1","calendar",month.length,"eventos este mes"],["k2","cash",money(paidMonth),"cobrado este mes"],["k3","hourglass",money(owed),"por cobrar"],["k4","receipt",openQ.length,"cotizaciones abiertas"]]);
+  $("homeKpis").innerHTML = kpiHtml([["k1","calendar",month.length,"eventos este mes","agenda:month"],["k2","cash",money(paidMonth),"cobrado este mes","agenda:paid"],["k3","hourglass",money(owed),"por cobrar","agenda:debt"],["k4","receipt",openQ.length,"cotizaciones abiertas","quotes:open"]]);
   const next = act.filter(b=>!isPast(b.event_date)).sort((a,b)=>(a.event_date||"9").localeCompare(b.event_date||"9")).slice(0,5);
   $("homeNext").innerHTML = next.length ? next.map(b=>bookingItem(b,true)).join("") : `<div class="card empty"><b>Sin eventos próximos</b>Agenda tu siguiente evento.</div>`;
   $("homeQuotes").innerHTML = QT.length ? QT.slice(0,5).map(quoteItem).join("") : `<div class="card empty"><b>Sin cotizaciones</b>Crea la primera en segundos.</div>`;
 }
+document.addEventListener("click", e=>{
+  const k = e.target.closest("[data-kgo]"); if(!k) return;
+  const [v, f] = k.dataset.kgo.split(":");
+  if(v==="agenda"){ agF = f; document.querySelectorAll("[data-agf]").forEach(x=>x.setAttribute("aria-pressed", x.dataset.agf===f)); go("agenda"); }
+  else if(v==="quotes"){ qF = f; go("quotes"); }
+});
 $("homeNext").addEventListener("click", e=>{ const it = e.target.closest("[data-bk]"); if(it){ go("agenda"); } });
 $("homeQuotes").addEventListener("click", e=>{ const it = e.target.closest("[data-qt]"); if(it) openQuote(QT.find(q=>q.id===it.dataset.qt)); });
 
@@ -637,9 +652,11 @@ let agF = "up";
 document.querySelectorAll("[data-agf]").forEach(b=>b.onclick=()=>{ agF = b.dataset.agf; document.querySelectorAll("[data-agf]").forEach(x=>x.setAttribute("aria-pressed", x===b)); renderAgenda(); });
 function renderAgenda(){
   const act = BK.filter(b=>b.status!=="cancelado"), up = act.filter(b=>!isPast(b.event_date));
-  $("agKpis").innerHTML = kpiHtml([["k1","calendar",up.length,"eventos próximos"],["k4","money",money(up.reduce((a,b)=>a+(+b.total||0),0)),"total contratado (próximos)"],["k2","cash",money(up.reduce((a,b)=>a+paid(b),0)),"cobrado (próximos)"],["k3","hourglass",money(act.reduce((a,b)=>a+balance(b),0)),"falta por cobrar (todos)"]]);
+  $("agKpis").innerHTML = kpiHtml([["k1","calendar",up.length,"eventos próximos","agenda:up"],["k4","money",money(up.reduce((a,b)=>a+(+b.total||0),0)),"total contratado (próximos)","agenda:up"],["k2","cash",money(up.reduce((a,b)=>a+paid(b),0)),"cobrado (próximos)","agenda:paid"],["k3","hourglass",money(act.reduce((a,b)=>a+balance(b),0)),"falta por cobrar (todos)","agenda:debt"]]);
   let list = BK.slice();
   if(agF==="up") list = list.filter(b=>!isPast(b.event_date) && b.status!=="cancelado");
+  else if(agF==="month") list = list.filter(b=>(b.event_date||"").startsWith(todayISO().slice(0,7)) && b.status!=="cancelado");
+  else if(agF==="paid") list = list.filter(b=>PAY.some(p=>p.booking_id===b.id && (p.paid_at||"").startsWith(todayISO().slice(0,7))));
   else if(agF==="past") list = list.filter(b=>isPast(b.event_date));
   else if(agF==="debt") list = list.filter(b=>b.status!=="cancelado" && balance(b)>0);
   list.sort((a,b)=> agF==="past" ? (b.event_date||"").localeCompare(a.event_date||"") : (a.event_date||"9").localeCompare(b.event_date||"9"));
@@ -812,7 +829,13 @@ function quoteItem(q){
     <div><h4>${esc(q.client_name)} <span class="pill ${s[1]}">${s[0]}</span></h4><div class="meta"><span>${ic("star")}${esc(q.type)}</span><span>${ic("calendar")}${fDate(q.event_date,{day:"numeric",month:"short",year:"numeric"})}</span>${q.guests?`<span>${ic("users")}${q.guests}</span>`:""}</div></div>
     <div class="money"><b>${money(q.total)}</b><small>${esc(q.folio)}</small></div></div>`;
 }
-function renderQuotes(){ $("qList").innerHTML = QT.length ? QT.map(quoteItem).join("") : `<div class="card empty"><b>Sin cotizaciones</b>Crea la primera con “Nueva cotización”.</div>`; }
+let qF = "all";
+function renderQuotes(){
+  const list = qF==="open" ? QT.filter(q=>q.status==="borrador"||q.status==="enviada") : QT;
+  $("qTools").innerHTML = `<button class="chip" data-qf="all" aria-pressed="${qF==="all"}">Todas</button><button class="chip" data-qf="open" aria-pressed="${qF==="open"}">Abiertas</button>`;
+  $("qList").innerHTML = list.length ? list.map(quoteItem).join("") : `<div class="card empty"><b>Sin cotizaciones${qF==="open"?" abiertas":""}</b>Crea una con “Nueva cotización”.</div>`;
+}
+$("qTools").addEventListener("click", e=>{ const b = e.target.closest("[data-qf]"); if(b){ qF = b.dataset.qf; renderQuotes(); } });
 $("qList").addEventListener("click", e=>{ const it = e.target.closest("[data-qt]"); if(it) openQuote(QT.find(q=>q.id===it.dataset.qt)); });
 let QD = null;
 function openQuote(q){
