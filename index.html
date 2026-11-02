@@ -746,8 +746,8 @@ function openPay(b){
 async function createReception(b){
   if(!b.event_date && !confirm("El evento no tiene fecha. ¿Crearlo en Recepción de todos modos?")) return;
   const id = uuid();
-  const ev = {id, name: b.title || `${b.type} ${b.client_name}`, type:b.type, event_date:b.event_date||null, start_time:b.start_time||null, theme: b.type==="XV años"?"rosa":"olivo", planner:SET.name||"AUX Events", subtitle:"Recepción de invitados"};
-  try{ await must(sb.from("events").insert(ev)); b.reception_event_id = id; await save(T.bk, b); toast("Evento creado en Recepción. Ahí importa la lista de invitados."); renderView(); }
+  const ev = {id, name: b.title || `${b.type} ${b.client_name}`, type:b.type, event_date:b.event_date||null, start_time:b.start_time||null, theme: b.type==="XV años"?"rosa":"olivo", planner:SET.name||"AUX Events", subtitle:"Recepción de invitados", venue:b.venue||null};
+  try{ try{ await must(sb.from("events").insert(ev)); }catch(err){ if(!/venue/i.test(err.message||"")) throw err; delete ev.venue; await must(sb.from("events").insert(ev)); } b.reception_event_id = id; await save(T.bk, b); toast("Evento creado en Recepción. Ahí importa la lista de invitados."); renderView(); }
   catch(e){ console.error(e); toast("No se pudo crear en Recepción."); }
 }
 
