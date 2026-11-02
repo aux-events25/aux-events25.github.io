@@ -139,7 +139,8 @@ button.kpi:hover{transform:translateY(-2px);border-color:var(--gold)}
 .item .date small{font-size:11.5px;color:var(--gold);text-transform:capitalize}
 .item h4{margin:0;font-size:16.5px;font-weight:500}
 .item .meta{display:flex;flex-wrap:wrap;gap:3px 12px;color:var(--muted);font-size:13.5px;margin-top:2px}
-.item .meta span{display:inline-flex;align-items:center;gap:5px}
+.item .meta span,.item .meta a{display:inline-flex;align-items:center;gap:5px}
+a.maplink{color:var(--primary-ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 40%, transparent)}
 .money{text-align:right;white-space:nowrap}
 .money b{display:block;font-family:var(--serif);font-size:20px;font-weight:700}
 .money small{color:var(--muted);font-size:12.5px}
@@ -497,6 +498,8 @@ function closeM(id){ $(id).classList.remove("open"); }
 document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click", e=>{ if(e.target===o || e.target.closest("[data-close]")) o.classList.remove("open"); }));
 document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ const o = [...document.querySelectorAll(".overlay.open")].pop(); if(o) o.classList.remove("open"); } });
 
+function cleanUrl(u){ u = String(u||"").trim(); if(!u) return ""; const m = u.match(/https?:\/\/\S+/i); if(m) return m[0]; return /^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u) ? "https://"+u : ""; }
+function mapUrl(name, url){ return url || (name ? "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(name) : ""); }
 const EVENT_TYPES = ["Boda","XV años","Cumpleaños","Bautizo","Primera comunión","Aniversario","Graduación","Corporativo","Otro"];
 const PAY_METHODS = ["Transferencia","Efectivo","Tarjeta","Depósito","Mixto"];
 
@@ -611,7 +614,7 @@ function bookingItem(b, compact){
   return `<div class="item" data-bk="${b.id}">
     <div class="date">${d?`<b>${d.getDate()}</b><small>${d.toLocaleDateString("es-MX",{month:"short"})} ${String(d.getFullYear()).slice(2)}</small>`:`<b>—</b><small>sin fecha</small>`}</div>
     <div><h4>${esc(b.title || (b.type+" · "+b.client_name))} ${st}</h4>
-      <div class="meta"><span>${ic("users")}${esc(b.client_name)}</span>${b.start_time?`<span>${ic("clock")}${fTime(b.start_time)}</span>`:""}${b.venue?`<span>${ic("pin")}${esc(b.venue)}</span>`:""}${b.guests?`<span>${ic("users")}${b.guests} invitados</span>`:""}</div>
+      <div class="meta"><span>${ic("users")}${esc(b.client_name)}</span>${b.start_time?`<span>${ic("clock")}${fTime(b.start_time)}</span>`:""}${b.venue||b.venue_url?`<a class="maplink" href="${esc(mapUrl(b.venue,b.venue_url))}" target="_blank" rel="noopener">${ic("pin")}${esc(b.venue||"Ver ubicación")}</a>`:""}${b.guests?`<span>${ic("users")}${b.guests} invitados</span>`:""}</div>
       ${compact?"":`<div class="bar"><i style="width:${pct}%"></i></div>
       <div class="acts">
         <button class="btn" data-a="pay">${ic("cash")}Registrar pago</button>
@@ -644,7 +647,7 @@ document.addEventListener("click", e=>{
   if(v==="agenda"){ agF = f; document.querySelectorAll("[data-agf]").forEach(x=>x.setAttribute("aria-pressed", x.dataset.agf===f)); go("agenda"); }
   else if(v==="quotes"){ qF = f; go("quotes"); }
 });
-$("homeNext").addEventListener("click", e=>{ const it = e.target.closest("[data-bk]"); if(it){ go("agenda"); } });
+$("homeNext").addEventListener("click", e=>{ if(e.target.closest("a")) return; const it = e.target.closest("[data-bk]"); if(it){ go("agenda"); } });
 $("homeQuotes").addEventListener("click", e=>{ const it = e.target.closest("[data-qt]"); if(it) openQuote(QT.find(q=>q.id===it.dataset.qt)); });
 
 /* ================= Agenda y pagos ================= */
@@ -688,8 +691,9 @@ function bookingForm(b, isNew){
     <label>Estado<select id="bkStatus">${[["confirmado","Confirmado"],["tentativo","Tentativo"],["cancelado","Cancelado"]].map(([v,l])=>`<option value="${v}" ${b.status===v?"selected":""}>${l}</option>`).join("")}</select></label>
     <label>Hora de inicio<input id="bkStart" type="time" value="${esc((b.start_time||"").slice(0,5))}"></label>
     <label>Hora de fin<input id="bkEnd" type="time" value="${esc((b.end_time||"").slice(0,5))}"></label>
-    <label>Lugar<input id="bkVenue" value="${esc(b.venue||"")}" placeholder="Salón, jardín o dirección"></label>
+    <label>Nombre del lugar<input id="bkVenue" value="${esc(b.venue||"")}" placeholder="Ej. Hacienda Los Olivos"></label>
     <label>Invitados<input id="bkGuests" type="number" min="0" value="${b.guests||""}"></label>
+    <label class="wide">Link de ubicación (Google Maps o Waze)<input id="bkVenueUrl" inputmode="url" value="${esc(b.venue_url||"")}" placeholder="Pega aquí el link completo"></label>
     <div class="fs">${ic("money")}Pago</div>
     <label>Total contratado<input id="bkTotal" type="number" min="0" step="0.01" value="${b.total||""}"></label>
     <label>Anticipo recibido hoy (opcional)<input id="bkDeposit" type="number" min="0" step="0.01" placeholder="${!isNew?"Usa “Registrar pago”":"Ej. la mitad"}" ${!isNew?"disabled":""}></label>
@@ -709,7 +713,7 @@ function openBooking(b, preset){
   openM("mBooking");
   $("bkSave").onclick = async ()=>{
     const row = {id:b.id, client_name:$("bkClient").value.trim(), phone:$("bkPhone").value.trim(), email:$("bkEmail").value.trim(), type:$("bkType").value, title:$("bkTitle").value.trim(),
-      event_date:$("bkDate").value||null, start_time:$("bkStart").value||null, end_time:$("bkEnd").value||null, venue:$("bkVenue").value.trim(), guests:+$("bkGuests").value||null,
+      event_date:$("bkDate").value||null, start_time:$("bkStart").value||null, end_time:$("bkEnd").value||null, venue:$("bkVenue").value.trim(), venue_url:cleanUrl($("bkVenueUrl").value)||null, guests:+$("bkGuests").value||null,
       total:+$("bkTotal").value||0, status:$("bkStatus").value, notes:$("bkNotes").value.trim(), quote_id:b.quote_id||null, reception_event_id:b.reception_event_id||null, created_by:b.created_by||SESSION.name};
     if(!row.client_name){ $("bkErr").innerHTML = `<div class="alert">${ic("x")}<span>Escribe el nombre del cliente.</span></div>`; return; }
     try{
@@ -746,8 +750,8 @@ function openPay(b){
 async function createReception(b){
   if(!b.event_date && !confirm("El evento no tiene fecha. ¿Crearlo en Recepción de todos modos?")) return;
   const id = uuid();
-  const ev = {id, name: b.title || `${b.type} ${b.client_name}`, type:b.type, event_date:b.event_date||null, start_time:b.start_time||null, theme: b.type==="XV años"?"rosa":"olivo", planner:SET.name||"AUX Events", subtitle:"Recepción de invitados", venue:b.venue||null};
-  try{ try{ await must(sb.from("events").insert(ev)); }catch(err){ if(!/venue/i.test(err.message||"")) throw err; delete ev.venue; await must(sb.from("events").insert(ev)); } b.reception_event_id = id; await save(T.bk, b); toast("Evento creado en Recepción. Ahí importa la lista de invitados."); renderView(); }
+  const ev = {id, name: b.title || `${b.type} ${b.client_name}`, type:b.type, event_date:b.event_date||null, start_time:b.start_time||null, theme: b.type==="XV años"?"rosa":"olivo", planner:SET.name||"AUX Events", subtitle:"Recepción de invitados", venue:b.venue||null, venue_url:b.venue_url||null};
+  try{ try{ await must(sb.from("events").insert(ev)); }catch(err){ if(!/venue/i.test(err.message||"")) throw err; delete ev.venue; delete ev.venue_url; await must(sb.from("events").insert(ev)); } b.reception_event_id = id; await save(T.bk, b); toast("Evento creado en Recepción. Ahí importa la lista de invitados."); renderView(); }
   catch(e){ console.error(e); toast("No se pudo crear en Recepción."); }
 }
 
@@ -761,7 +765,7 @@ function calRange(b){
   else if(en < st) endD = addDays(b.event_date,1).replace(/-/g,"");
   return {allDay:false, s:`${d}T${st}00`, e:`${endD}T${endT}00`};
 }
-const calText = b => ({title: b.title || `${b.type} · ${b.client_name}`, details:`Cliente: ${b.client_name}${b.phone?" · Tel. "+b.phone:""}\nTotal: ${money(b.total)} · Pagado: ${money(paid(b))} · Falta: ${money(balance(b))}${b.guests?"\nInvitados: "+b.guests:""}${b.notes?"\n"+b.notes:""}`});
+const calText = b => ({title: b.title || `${b.type} · ${b.client_name}`, details:`Cliente: ${b.client_name}${b.phone?" · Tel. "+b.phone:""}\nTotal: ${money(b.total)} · Pagado: ${money(paid(b))} · Falta: ${money(balance(b))}${b.guests?"\nInvitados: "+b.guests:""}${b.venue_url?"\nUbicación: "+b.venue_url:""}${b.notes?"\n"+b.notes:""}`});
 function gcalUrl(b){ const r = calRange(b), t = calText(b); return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t.title)}&dates=${r.s}/${r.e}&details=${encodeURIComponent(t.details)}&location=${encodeURIComponent(b.venue||"")}`; }
 function downloadIcs(b){
   const r = calRange(b), t = calText(b), e = s => String(s).replace(/\\/g,"\\\\").replace(/([,;])/g,"\\$1").replace(/\n/g,"\\n");
