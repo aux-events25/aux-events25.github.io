@@ -179,6 +179,19 @@ a.maplink{color:var(--primary-ink);text-decoration:underline;text-underline-offs
 .citem:last-child{border-bottom:0}
 .citem b{font-weight:500} .citem small{display:block;color:var(--muted);font-size:13px}
 .citem.off{opacity:.55}
+.lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lh{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.lh b{display:block;font-family:var(--serif);font-size:21px;font-weight:600;line-height:1.1}
+.lh small{color:var(--muted);font-size:13px}
+.lchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.lchip{display:inline-flex;align-items:center;gap:2px;padding:4px 4px 4px 4px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:14px}
+.lchip .mv,.lchip .rm{border:0;background:transparent;width:24px;height:24px;border-radius:50%;color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center;padding:0}
+.lchip .mv:hover{background:var(--surface)}
+.lchip .rm{color:var(--bad-ink)} .lchip .rm:hover{background:var(--bad-soft)}
+.ladd{display:flex;gap:8px;flex-wrap:wrap}
+.ladd input{flex:1;min-width:160px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:0 12px}
+.ladd .btn{height:44px;flex:none}
+@media (max-width:980px){ .lgrid{grid-template-columns:1fr} }
 
 /* ---------- Formularios / modales ---------- */
 .overlay{position:fixed;inset:0;background:rgba(20,20,18,.55);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:18px;z-index:50;overflow:auto}
@@ -346,6 +359,7 @@ a.maplink{color:var(--primary-ink);text-decoration:underline;text-underline-offs
       <button data-v="quotes"><i data-icon="receipt"></i>Cotizaciones</button>
       <button data-v="contracts"><i data-icon="contract"></i>Contratos</button>
       <button data-v="catalog"><i data-icon="box"></i>Catálogo</button>
+      <button data-v="lists"><i data-icon="list"></i>Listas y opciones</button>
       <button data-v="settings"><i data-icon="sliders"></i>Datos del negocio</button>
       <div class="sep"></div>
       <a class="rec" href="/recepcion/"><i data-icon="userCheck"></i>Recepción de invitados</a>
@@ -403,9 +417,16 @@ a.maplink{color:var(--primary-ink);text-decoration:underline;text-underline-offs
 
       <!-- Catálogo -->
       <section class="view" id="v-catalog">
-        <div class="vh"><h2><span class="hi"><i data-icon="box"></i></span>Catálogo de servicios</h2><button class="btn dark" id="catNew"><i data-icon="plus"></i>Agregar servicio</button></div>
-        <p class="intro">Los servicios y productos que ofreces, con su precio. Se usan para armar las cotizaciones en segundos.</p>
+        <div class="vh"><h2><span class="hi"><i data-icon="box"></i></span>Catálogo</h2><button class="btn dark" id="catNew"><i data-icon="plus"></i>Agregar al catálogo</button></div>
+        <p class="intro">Tus servicios, productos de venta, rentas y paquetes, con su precio. Se usan para armar las cotizaciones en segundos. Los tipos, categorías y unidades se configuran en <b>Listas y opciones</b>.</p>
         <div id="catList"></div>
+      </section>
+
+      <!-- Listas y opciones -->
+      <section class="view" id="v-lists">
+        <div class="vh"><h2><span class="hi"><i data-icon="list"></i></span>Listas y opciones</h2><button class="btn dark" id="listsSave"><i data-icon="check"></i>Guardar cambios</button></div>
+        <p class="intro">Aquí configuras las opciones de las listas desplegables de todo el panel. Agrega, quita u ordena con las flechas, y da <b>Guardar cambios</b>. Lo que ya está guardado en eventos o cotizaciones no se pierde aunque quites la opción.</p>
+        <div class="lgrid" id="listsBox"></div>
       </section>
 
       <!-- Ajustes -->
@@ -476,6 +497,7 @@ const ICONS = {
   sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>', briefcase:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
   cake:'<path d="M4 21h16v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5M12 11V7M12 4.5v.01"/>',
   crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>', church:'<path d="M12 2v4M10 4h4M6 21V11l6-5 6 5v10M3 21h18M10 21v-4h4v4"/>', star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>',
   convert:'<path d="M17 3l4 4-4 4M21 7H9M7 21l-4-4 4-4M3 17h12"/>'
 };
 const ic = (n, sw=1.8) => `<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||""}</svg>`;
@@ -500,8 +522,31 @@ document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ const o = [...do
 
 function cleanUrl(u){ u = String(u||"").trim(); if(!u) return ""; const m = u.match(/https?:\/\/\S+/i); if(m) return m[0]; return /^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u) ? "https://"+u : ""; }
 function mapUrl(name, url){ return url || (name ? "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(name) : ""); }
-const EVENT_TYPES = ["Boda","XV años","Cumpleaños","Bautizo","Primera comunión","Aniversario","Graduación","Corporativo","Otro"];
-const PAY_METHODS = ["Transferencia","Efectivo","Tarjeta","Depósito","Mixto"];
+/* ---------- Listas desplegables configurables (Listas y opciones) ---------- */
+const DEF_LISTS = {
+  kinds:["Servicio","Producto","Renta","Paquete"],
+  categories:["Recepción","Coordinación","Invitados","Decoración","Mobiliario","Recuerdos y detalles","Servicios"],
+  units:["servicio","por persona","por hora","pieza","paquete","por mesa","renta por día","juego"],
+  eventTypes:["Boda","XV años","Cumpleaños","Bautizo","Primera comunión","Aniversario","Graduación","Corporativo","Otro"],
+  payMethods:["Transferencia","Efectivo","Tarjeta","Depósito","Mixto"],
+  payConcepts:["Anticipo","Abono","Liquidación","Hora extra","Otro"]
+};
+const LIST_INFO = {
+  kinds:["Tipos de artículo","Separan el catálogo: servicios, productos de venta, rentas, paquetes…","box"],
+  categories:["Categorías del catálogo","Agrupan los artículos dentro del catálogo.","sliders"],
+  units:["Unidades","Cómo se cobra cada artículo: por persona, por hora, pieza…","receipt"],
+  eventTypes:["Tipos de evento","Aparecen en Agenda, Cotizaciones y Contratos.","star"],
+  payMethods:["Formas de pago","Para registrar pagos y en los contratos.","cash"],
+  payConcepts:["Conceptos de pago","Anticipo, abono, liquidación… al registrar un pago.","money"]
+};
+let LISTS = JSON.parse(JSON.stringify(DEF_LISTS));
+let EVENT_TYPES = LISTS.eventTypes, PAY_METHODS = LISTS.payMethods, UNITS = LISTS.units;
+function applyLists(v){
+  LISTS = JSON.parse(JSON.stringify(DEF_LISTS));
+  Object.keys(DEF_LISTS).forEach(k=>{ if(v && Array.isArray(v[k]) && v[k].length) LISTS[k] = v[k]; });
+  EVENT_TYPES = LISTS.eventTypes; PAY_METHODS = LISTS.payMethods; UNITS = LISTS.units;
+}
+const optsHtml = (list, cur) => [...list, ...(cur && !list.includes(cur) ? [cur] : [])].map(x=>`<option ${x===cur?"selected":""}>${esc(x)}</option>`).join("");
 
 /* ================= Supabase y sesión ================= */
 const sb = window.supabase ? window.supabase.createClient("https://tdjbmpvqcawvdctrwufy.supabase.co", "sb_publishable_yqj8j21Kdjqeq9BD_dQHvg__jPp7qRk", {auth:{persistSession:true, autoRefreshToken:true}}) : null;
@@ -570,6 +615,7 @@ async function loadAll(){
     must(sb.from(T.pay).select("*")), must(sb.from(T.qt).select("*")), must(sb.from(T.ct).select("*"))
   ]);
   const bs = (s||[]).find(x=>x.key==="business"); SET = {...DEF_SET, ...(bs ? bs.value : {})};
+  const ls = (s||[]).find(x=>x.key==="lists"); applyLists(ls ? ls.value : {});
   CAT = (c||[]).sort((a,b)=>(a.category||"").localeCompare(b.category||"","es")||(a.sort-b.sort)||a.name.localeCompare(b.name,"es"));
   BK = b||[]; PAY = p||[]; QT = (q||[]).sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||""))); CT = (k||[]).sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")));
 }
@@ -597,7 +643,7 @@ document.addEventListener("click", e=>{
 });
 function renderView(){
   if(VIEW==="home") renderHome(); else if(VIEW==="agenda") renderAgenda(); else if(VIEW==="quotes") renderQuotes();
-  else if(VIEW==="contracts") renderContracts(); else if(VIEW==="catalog") renderCatalog(); else if(VIEW==="settings") renderSettings();
+  else if(VIEW==="contracts") renderContracts(); else if(VIEW==="catalog") renderCatalog(); else if(VIEW==="settings") renderSettings(); else if(VIEW==="lists") renderLists();
 }
 async function enter(){
   if(!SESSION || SESSION.role!=="admin"){ showScreen("denied"); return; }
@@ -685,7 +731,7 @@ function bookingForm(b, isNew){
     <label>Teléfono<input id="bkPhone" value="${esc(b.phone||"")}" inputmode="tel"></label>
     <label>Correo<input id="bkEmail" value="${esc(b.email||"")}" type="email"></label>
     <div class="fs">${ic("calendar")}Evento</div>
-    <label>Tipo de evento<select id="bkType">${EVENT_TYPES.map(t=>`<option ${t===b.type?"selected":""}>${t}</option>`).join("")}</select></label>
+    <label>Tipo de evento<select id="bkType">${optsHtml(EVENT_TYPES, b.type)}</select></label>
     <label>Nombre del evento<input id="bkTitle" value="${esc(b.title||"")}" placeholder="Ej. Boda Ana & Luis"></label>
     <label>Fecha<input id="bkDate" type="date" value="${esc(b.event_date||"")}"></label>
     <label>Estado<select id="bkStatus">${[["confirmado","Confirmado"],["tentativo","Tentativo"],["cancelado","Cancelado"]].map(([v,l])=>`<option value="${v}" ${b.status===v?"selected":""}>${l}</option>`).join("")}</select></label>
@@ -736,8 +782,8 @@ function openPay(b){
     <div class="form">
       <label>Monto<input id="pyAmt" type="number" min="0" step="0.01" value="${bal||""}"></label>
       <label>Fecha<input id="pyDate" type="date" value="${todayISO()}"></label>
-      <label>Forma de pago<select id="pyMethod">${PAY_METHODS.map(m=>`<option>${m}</option>`).join("")}</select></label>
-      <label>Concepto<select id="pyNote"><option>${paid(b)>0?"Abono":"Anticipo"}</option><option>Abono</option><option>Liquidación</option><option>Hora extra</option><option>Otro</option></select></label>
+      <label>Forma de pago<select id="pyMethod">${optsHtml(PAY_METHODS, PAY_METHODS[0])}</select></label>
+      <label>Concepto<select id="pyNote">${optsHtml(LISTS.payConcepts, paid(b)>0 ? (LISTS.payConcepts.find(x=>/abono/i.test(x))||LISTS.payConcepts[1]||LISTS.payConcepts[0]) : (LISTS.payConcepts.find(x=>/anticipo/i.test(x))||LISTS.payConcepts[0]))}</select></label>
     </div>
     <div class="actions"><button class="btn" data-close>Cancelar</button><button class="btn dark" id="pySave">${ic("check")}Guardar pago</button></div>`;
   openM("mPay");
@@ -777,7 +823,6 @@ function downloadIcs(b){
   toast("Abre el archivo descargado para agregarlo a tu calendario");
 }
 /* ================= Catálogo ================= */
-const UNITS = ["servicio","por persona","por hora","pieza","paquete","por mesa"];
 const SAMPLE_CAT = [
   ["Recepción","Recepción digital de invitados","Registro de llegadas en tablet y celular, control de mesas y reporte final en PDF.","servicio",2500],
   ["Recepción","Hostess de recepción (5 horas)","Recibe a los invitados, los ubica en su mesa y los acompaña.","por persona",1200],
@@ -787,35 +832,75 @@ const SAMPLE_CAT = [
   ["Invitados","Invitación digital con confirmación (RSVP)","Diseño de invitación digital y control de confirmaciones.","servicio",1800],
   ["Invitados","Mesa de regalos y registro","Recepción y registro de regalos y sobres.","servicio",1500]
 ];
+let catF = "Todos";
 function renderCatalog(){
-  if(!CAT.length){ $("catList").innerHTML = `<div class="card empty"><b>Tu catálogo está vacío</b>Agrega tus servicios o carga uno de ejemplo para editarlo.<div class="actions" style="justify-content:center"><button class="btn" id="catSeed">${ic("sparkle")}Cargar catálogo de ejemplo</button></div></div>`;
-    $("catSeed").onclick = async ()=>{ try{ for(const [i,[c,n,d,u,p]] of SAMPLE_CAT.entries()){ const r = {id:uuid(), category:c, name:n, description:d, unit:u, price:p, active:true, sort:i}; await save(T.cat, r); CAT.push(r); } toast("Catálogo de ejemplo cargado. Ajusta los precios a los tuyos."); renderCatalog(); }catch(e){ toast("No se pudo cargar."); } }; return; }
-  const cats = [...new Set(CAT.map(c=>c.category||"Servicios"))];
-  $("catList").innerHTML = cats.map(c=>`<div class="cat-h">${esc(c)}</div><div class="card">${CAT.filter(x=>(x.category||"Servicios")===c).map(x=>`<div class="citem ${x.active?"":"off"}" data-ci="${x.id}"><div><b>${esc(x.name)}</b><small>${esc(x.description||"")}</small></div><div class="money"><b style="font-size:18px">${money(x.price)}</b><small>${esc(x.unit)}${x.active?"":" · oculto"}</small></div><button class="btn" style="height:38px" data-cedit>${ic("edit")}</button></div>`).join("")}</div>`).join("");
+  if(!CAT.length){ $("catList").innerHTML = `<div class="card empty"><b>Tu catálogo está vacío</b>Agrega tus servicios y productos, o carga un catálogo de ejemplo para editarlo.<div class="actions" style="justify-content:center"><button class="btn" id="catSeed">${ic("sparkle")}Cargar catálogo de ejemplo</button></div></div>`;
+    $("catSeed").onclick = async ()=>{ try{ for(const [i,[c,n,d,u,p]] of SAMPLE_CAT.entries()){ const r = {id:uuid(), kind:"Servicio", category:c, name:n, description:d, unit:u, price:p, active:true, sort:i}; await saveItem(r); CAT.push(r); } toast("Catálogo de ejemplo cargado. Ajusta los precios a los tuyos."); renderCatalog(); }catch(e){ toast("No se pudo cargar."); } }; return; }
+  const kinds = [...new Set([...LISTS.kinds, ...CAT.map(c=>c.kind||"Servicio")])];
+  const count = k => CAT.filter(c=>(c.kind||"Servicio")===k).length;
+  const chips = `<div class="tools">${["Todos",...kinds].map(k=>`<button class="chip" data-kf="${esc(k)}" aria-pressed="${k===catF}">${esc(k==="Todos"?"Todos":k)} <span class="muted">${k==="Todos"?CAT.length:count(k)}</span></button>`).join("")}</div>`;
+  const list = CAT.filter(c=>catF==="Todos" || (c.kind||"Servicio")===catF);
+  const cats = [...new Set(list.map(c=>c.category||"Servicios"))];
+  $("catList").innerHTML = chips + (list.length ? cats.map(c=>`<div class="cat-h">${esc(c)}</div><div class="card">${list.filter(x=>(x.category||"Servicios")===c).map(x=>`<div class="citem ${x.active?"":"off"}" data-ci="${x.id}"><div><b>${esc(x.name)} <span class="pill ${({"Producto":"gold","Renta":"chg","Paquete":"ok"})[x.kind]||""}">${esc(x.kind||"Servicio")}</span></b><small>${esc([x.description, x.stock!=null&&x.stock!==""?`Existencias: ${x.stock}`:""].filter(Boolean).join(" · "))}</small></div><div class="money"><b style="font-size:18px">${money(x.price)}</b><small>${esc(x.unit)}${x.active?"":" · oculto"}</small></div><button class="btn" style="height:38px" data-cedit aria-label="Editar">${ic("edit")}</button></div>`).join("")}</div>`).join("") : `<div class="card empty"><b>Sin artículos de este tipo</b>Agrégalos con “Agregar al catálogo”.</div>`);
 }
-$("catList").addEventListener("click", e=>{ const r = e.target.closest("[data-ci]"); if(r && e.target.closest("[data-cedit]")) openItem(CAT.find(x=>x.id===r.dataset.ci)); });
+$("catList").addEventListener("click", e=>{
+  const f = e.target.closest("[data-kf]"); if(f){ catF = f.dataset.kf; renderCatalog(); return; }
+  const r = e.target.closest("[data-ci]"); if(r && e.target.closest("[data-cedit]")) openItem(CAT.find(x=>x.id===r.dataset.ci));
+});
 $("catNew").onclick = ()=>openItem(null);
+async function saveItem(r){
+  try{ await save(T.cat, r); }
+  catch(e){ if(!/kind|stock/i.test(e.message||"")) throw e; const {kind, stock, ...rest} = r; await save(T.cat, rest); toast("Guardado. Para guardar el tipo y las existencias, corre el SQL nuevo en Supabase."); }
+}
 function openItem(it){
-  const isNew = !it; it = it ? {...it} : {id:uuid(), category:"Servicios", unit:"servicio", price:0, active:true, sort:CAT.length};
-  const cats = [...new Set(["Recepción","Coordinación","Invitados","Decoración","Servicios",...CAT.map(c=>c.category)])];
-  $("mItemBody").innerHTML = `<div class="sh"><span class="hi">${ic("box")}</span><h3>${isNew?"Nuevo servicio":"Editar servicio"}</h3></div><p>Aparecerá en el catálogo y al armar cotizaciones.</p>
+  const isNew = !it; it = it ? {...it} : {id:uuid(), kind: catF!=="Todos" ? catF : (LISTS.kinds[0]||"Servicio"), category:LISTS.categories[0]||"Servicios", unit:LISTS.units[0]||"servicio", price:0, active:true, sort:CAT.length};
+  const cats = [...new Set([...LISTS.categories, ...CAT.map(c=>c.category).filter(Boolean)])];
+  $("mItemBody").innerHTML = `<div class="sh"><span class="hi">${ic("box")}</span><h3>${isNew?"Agregar al catálogo":"Editar artículo"}</h3></div><p>Servicios, productos de venta, rentas o paquetes. Aparecerá en el catálogo y al armar cotizaciones.</p>
     <div class="form">
-      <label class="wide">Nombre<input id="ciName" value="${esc(it.name||"")}" placeholder="Ej. Hostess de recepción (5 horas)"></label>
-      <label>Categoría<input id="ciCat" list="ciCats" value="${esc(it.category)}"><datalist id="ciCats">${cats.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></label>
-      <label>Unidad<select id="ciUnit">${UNITS.map(u=>`<option ${u===it.unit?"selected":""}>${u}</option>`).join("")}</select></label>
+      <label class="wide">Nombre<input id="ciName" value="${esc(it.name||"")}" placeholder="Ej. Hostess de recepción (5 horas) · Libro de firmas · Renta de periquera"></label>
+      <label>Tipo<select id="ciKind">${optsHtml(LISTS.kinds, it.kind||"Servicio")}</select></label>
+      <label>Categoría<select id="ciCat">${optsHtml(cats, it.category)}</select></label>
+      <label>Unidad<select id="ciUnit">${optsHtml(LISTS.units, it.unit)}</select></label>
       <label>Precio<input id="ciPrice" type="number" min="0" step="0.01" value="${it.price}"></label>
+      <label>Existencias (opcional)<input id="ciStock" type="number" min="0" step="1" value="${it.stock??""}" placeholder="Para productos y rentas"></label>
       <label>Visible<select id="ciActive"><option value="1" ${it.active?"selected":""}>Sí</option><option value="0" ${it.active?"":"selected"}>No (oculto)</option></select></label>
       <label class="wide">Descripción<textarea id="ciDesc">${esc(it.description||"")}</textarea></label>
     </div>
+    <p class="muted" style="font-size:13px;margin:10px 0 0">¿Falta un tipo, categoría o unidad? Agrégalo en <b>Listas y opciones</b>.</p>
     <div class="actions">${!isNew?`<button class="btn danger" id="ciDel">${ic("trash")}Borrar</button>`:""}<button class="btn" data-close>Cancelar</button><button class="btn dark" id="ciSave">${ic("check")}Guardar</button></div>`;
   openM("mItem");
   $("ciSave").onclick = async ()=>{
-    const r = {...it, name:$("ciName").value.trim(), category:$("ciCat").value.trim()||"Servicios", unit:$("ciUnit").value, price:+$("ciPrice").value||0, active:$("ciActive").value==="1", description:$("ciDesc").value.trim()};
-    if(!r.name){ toast("Escribe el nombre del servicio."); return; }
-    try{ await save(T.cat, r); const i = CAT.findIndex(x=>x.id===r.id); if(i>-1) CAT[i] = r; else CAT.push(r); closeM("mItem"); toast("Servicio guardado"); renderCatalog(); }catch(e){ toast("No se pudo guardar."); }
+    const st = $("ciStock").value;
+    const r = {...it, name:$("ciName").value.trim(), kind:$("ciKind").value, category:$("ciCat").value||"Servicios", unit:$("ciUnit").value, price:+$("ciPrice").value||0, stock: st===""?null:+st, active:$("ciActive").value==="1", description:$("ciDesc").value.trim()};
+    if(!r.name){ toast("Escribe el nombre."); return; }
+    try{ await saveItem(r); const i = CAT.findIndex(x=>x.id===r.id); if(i>-1) CAT[i] = r; else CAT.push(r); closeM("mItem"); toast(`${r.kind} guardado`); renderCatalog(); }catch(e){ console.error(e); toast("No se pudo guardar."); }
   };
-  if(!isNew) $("ciDel").onclick = async ()=>{ if(!confirm("¿Borrar este servicio del catálogo?")) return; try{ await del(T.cat, it.id); CAT = CAT.filter(x=>x.id!==it.id); closeM("mItem"); renderCatalog(); }catch(e){ toast("No se pudo borrar."); } };
+  if(!isNew) $("ciDel").onclick = async ()=>{ if(!confirm("¿Borrar este artículo del catálogo?")) return; try{ await del(T.cat, it.id); CAT = CAT.filter(x=>x.id!==it.id); closeM("mItem"); renderCatalog(); }catch(e){ toast("No se pudo borrar."); } };
 }
+
+/* ================= Listas y opciones ================= */
+let LDRAFT = null;
+function renderLists(){
+  LDRAFT = JSON.parse(JSON.stringify(LISTS));
+  $("listsBox").innerHTML = Object.keys(DEF_LISTS).map(k=>{ const [t,d,icn] = LIST_INFO[k]; return `<div class="card pad lcard" data-lk="${k}">
+    <div class="lh"><span class="hi">${ic(icn)}</span><div><b>${t}</b><small>${d}</small></div></div>
+    <div class="lchips">${LDRAFT[k].map((x,i)=>`<span class="lchip"><button class="mv" data-mv="-1" data-i="${i}" aria-label="Mover antes">‹</button>${esc(x)}<button class="mv" data-mv="1" data-i="${i}" aria-label="Mover después">›</button><button class="rm" data-rm="${i}" aria-label="Quitar ${esc(x)}">×</button></span>`).join("")}</div>
+    <div class="ladd"><input placeholder="Agregar opción…" data-in="${k}"><button class="btn" data-add="${k}">${ic("plus")}Agregar</button><button class="btn" data-reset="${k}" title="Volver a las opciones originales">Restaurar</button></div>
+  </div>`; }).join("");
+}
+function redrawList(k){ const card = document.querySelector(`[data-lk="${k}"] .lchips`); if(card) card.innerHTML = LDRAFT[k].map((x,i)=>`<span class="lchip"><button class="mv" data-mv="-1" data-i="${i}" aria-label="Mover antes">‹</button>${esc(x)}<button class="mv" data-mv="1" data-i="${i}" aria-label="Mover después">›</button><button class="rm" data-rm="${i}" aria-label="Quitar ${esc(x)}">×</button></span>`).join(""); }
+$("listsBox").addEventListener("click", e=>{
+  const card = e.target.closest("[data-lk]"); if(!card) return; const k = card.dataset.lk;
+  const rm = e.target.closest("[data-rm]"); if(rm){ if(LDRAFT[k].length<=1){ toast("Debe quedar al menos una opción."); return; } LDRAFT[k].splice(+rm.dataset.rm,1); redrawList(k); return; }
+  const mv = e.target.closest("[data-mv]"); if(mv){ const i = +mv.dataset.i, j = i + +mv.dataset.mv; if(j<0||j>=LDRAFT[k].length) return; [LDRAFT[k][i], LDRAFT[k][j]] = [LDRAFT[k][j], LDRAFT[k][i]]; redrawList(k); return; }
+  if(e.target.closest("[data-add]")){ const inp = card.querySelector("[data-in]"), v = inp.value.trim(); if(!v) return; if(LDRAFT[k].some(x=>x.toLowerCase()===v.toLowerCase())){ toast("Esa opción ya existe."); return; } LDRAFT[k].push(v); inp.value = ""; redrawList(k); inp.focus(); return; }
+  if(e.target.closest("[data-reset]")){ LDRAFT[k] = [...DEF_LISTS[k]]; redrawList(k); }
+});
+$("listsBox").addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.matches("[data-in]")){ e.preventDefault(); e.target.closest("[data-lk]").querySelector("[data-add]").click(); } });
+$("listsSave").onclick = async ()=>{
+  try{ await save(T.set, {key:"lists", value:LDRAFT}); applyLists(LDRAFT); toast("Listas guardadas. Ya aparecen en todas las secciones."); renderLists(); }
+  catch(e){ toast("No se pudieron guardar las listas."); }
+};
 
 /* ================= Datos del negocio ================= */
 function renderSettings(){ document.querySelectorAll("#setForm [data-s]").forEach(i=>{ i.value = SET[i.dataset.s] ?? ""; }); }
@@ -857,7 +942,7 @@ function drawQuote(){
       <label>Teléfono<input data-q="phone" value="${esc(q.phone||"")}" inputmode="tel"></label>
       <label>Correo<input data-q="email" value="${esc(q.email||"")}"></label>
       <div class="fs">${ic("calendar")}Evento</div>
-      <label>Tipo<select data-q="type">${EVENT_TYPES.map(x=>`<option ${x===q.type?"selected":""}>${x}</option>`).join("")}</select></label>
+      <label>Tipo<select data-q="type">${optsHtml(EVENT_TYPES, q.type)}</select></label>
       <label>Fecha<input data-q="event_date" type="date" value="${esc(q.event_date||"")}"></label>
       <label>Invitados<input data-q="guests" type="number" min="0" value="${q.guests||""}"></label>
       <label>Lugar<input data-q="venue" value="${esc(q.venue||"")}"></label>
@@ -868,7 +953,7 @@ function drawQuote(){
           ${q.items.map((l,i)=>`<div class="line" data-li="${i}"><input data-l="name" value="${esc(l.name)}" placeholder="Concepto"><input data-l="qty" type="number" min="0" step="any" value="${l.qty}"><input data-l="price" type="number" min="0" step="0.01" value="${l.price}"><span class="sub">${money((+l.qty||0)*(+l.price||0))}</span><button class="x" data-ldel="${i}" aria-label="Quitar">${ic("x")}</button></div>`).join("") || `<div class="line"><span class="muted">Agrega servicios desde el catálogo o una línea libre.</span></div>`}
         </div>
         <div class="tools" style="margin-top:10px">
-          <select id="qAdd" style="height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:0 10px;flex:1;min-width:200px"><option value="">+ Agregar del catálogo…</option>${act.map(c=>`<option value="${c.id}">${esc(c.name)} · ${money(c.price)}</option>`).join("")}</select>
+          <select id="qAdd" style="height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:0 10px;flex:1;min-width:200px"><option value="">+ Agregar del catálogo…</option>${[...new Set(act.map(c=>c.kind||"Servicio"))].map(k=>`<optgroup label="${esc(k)}">${act.filter(c=>(c.kind||"Servicio")===k).map(c=>`<option value="${c.id}">${esc(c.name)} · ${money(c.price)}</option>`).join("")}</optgroup>`).join("")}</select>
           <button class="btn" id="qFree">${ic("plus")}Línea libre</button>
         </div>
       </div>
@@ -964,7 +1049,7 @@ function openContractForm(k, src){
       ${f("total","Monto total",'type="number" min="0" step="0.01"')}
       ${f("deposit","Anticipo",'type="number" min="0" step="0.01"')}
       ${f("due_date","Fecha límite para liquidar",'type="date"')}
-      <label>Forma de pago<select data-c="pay_method">${PAY_METHODS.map(m=>`<option ${m===d.pay_method?"selected":""}>${m}</option>`).join("")}</select></label>
+      <label>Forma de pago<select data-c="pay_method">${optsHtml(PAY_METHODS, d.pay_method)}</select></label>
       <div class="fs">${ic("file")}Condiciones</div>
       <label class="wide">Política de cancelación<select data-c="cancel">${CANCEL.map(c=>`<option ${c===d.cancel?"selected":""}>${esc(c)}</option>`).join("")}</select></label>
       ${f("extra_hour","Costo por hora extra",'type="number" min="0"')}
