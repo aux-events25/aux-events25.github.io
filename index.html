@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -67,7 +67,8 @@ body[data-screen="denied"] #denied{display:grid}
 .login-art::after{content:"";position:absolute;inset:18px;border:1px solid color-mix(in srgb,var(--gold) 55%, transparent);border-radius:22px;pointer-events:none}
 .big-mono{width:118px;height:118px;border-radius:50%;border:1px solid var(--gold);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:34px;color:var(--gold);box-shadow:inset 0 0 0 6px color-mix(in srgb,var(--band) 60%, transparent),inset 0 0 0 7px color-mix(in srgb,var(--gold) 45%, transparent)}
 .login-art h1{margin:26px 0 0;font-family:var(--serif);font-weight:700;font-size:clamp(28px,3.2vw,42px);letter-spacing:.1em;line-height:1;color:#fff}
-.login-art .script{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(24px,2.4vw,32px);color:var(--gold);margin-top:8px}
+.login-art .script{position:relative;font-family:"Outfit","Jost",sans-serif;font-style:normal;font-weight:400;font-size:clamp(15px,1.4vw,19px);letter-spacing:.42em;padding-left:.42em;text-transform:uppercase;color:#FFFFFF;margin-top:18px;display:flex;align-items:center;gap:14px}
+.login-art .script::before,.login-art .script::after{content:"";width:34px;height:1px;background:rgba(255,255,255,.55)}
 .login-pane{display:flex;align-items:center;justify-content:center;padding:40px 24px}
 .login-card{width:min(410px,100%)}
 .login-card[hidden]{display:none}
@@ -115,7 +116,8 @@ body[data-screen="denied"] #denied{display:grid}
 .content{padding:22px clamp(16px,3vw,36px) 80px;min-width:0}
 .view{display:none} .view.on{display:block}
 .vh{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.vh h2{margin:0;display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:32px;line-height:1}
+.vh h2{margin:0;display:flex;align-items:center;gap:12px;font-family:"Outfit","Jost",sans-serif;font-weight:400;font-size:30px;line-height:1.1;letter-spacing:-.01em}
+.vh h2 b{font-weight:600}
 .hi{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary-ink);font-size:19px}
 .intro{margin:-6px 0 18px;color:var(--muted);font-size:14.5px;max-width:75ch}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
@@ -242,7 +244,7 @@ a.maplink{color:var(--primary-ink);text-decoration:underline;text-underline-offs
 .auxwm i{font-style:normal;font-family:"Outfit","Jost",sans-serif;font-weight:500;color:#575757;margin-left:.2em}
 .band .auxwm i,.rp-side .auxwm i,.login-art .auxwm i{color:#E4D2AE}
 
-.brand-sub span{display:block;font-family:var(--serif);font-style:italic;font-weight:600;font-size:17px;color:var(--gold);border-left:1px solid color-mix(in srgb,var(--on-band) 30%, transparent);padding-left:12px}
+.brand-sub span{display:block;font-family:"Outfit","Jost",sans-serif;font-style:normal;font-weight:400;font-size:13px;letter-spacing:.32em;text-transform:uppercase;color:#FFFFFF;border-left:1px solid rgba(255,255,255,.35);padding-left:14px;line-height:1.2}
 .pp-foot .wm{opacity:.5}
 @media (max-width:640px){ .logo-band{height:34px} .brand-sub{display:none} }
 /* ---------- Hojas PDF ---------- */
@@ -702,7 +704,7 @@ function bookingItem(b, compact){
 }
 function kpiHtml(list){ return list.map(([cls,icon,val,lab,go])=>`<button type="button" class="kpi ${cls}" ${go?`data-kgo="${go}"`:""}><span class="b">${ic(icon)}</span><div><strong>${val}</strong><span>${lab}</span></div>${go?`<span class="kar">${ic("arrowRight")}</span>`:""}</button>`).join(""); }
 function renderHome(){
-  const h = new Date().getHours(); $("hello").textContent = `${h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches"}, ${String(SESSION.name).split(" ")[0]}`;
+  const h = new Date().getHours(); $("hello").innerHTML = `${h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches"}, <b>${esc(String(SESSION.name).split(" ")[0])}</b>`;
   $("today").textContent = fDateLong(todayISO());
   const ym = todayISO().slice(0,7), act = BK.filter(b=>b.status!=="cancelado");
   const month = act.filter(b=>(b.event_date||"").startsWith(ym));
